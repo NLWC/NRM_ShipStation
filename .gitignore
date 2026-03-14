@@ -1,0 +1,12 @@
+# Binary files
+**/*.app
+*.app
+
+**/.snapshots/
+**/.alcache
+
+# Others
+~$*
+*~
+rad.json
+launch.json

@@ -1,0 +1,15 @@
+{
+    "CRS.FileNamePattern": "<ObjectTypeShortPascalCase><ObjectId>.<ObjectNameShort>.al",
+    "CRS.FileNamePatternExtensions": "<ObjectTypeShortPascalCase><ObjectId>.<ObjectNameShort>.al",
+    "CRS.FileNamePatternPageCustomizations": "<ObjectTypeShortPascalCase><ObjectId>.<ObjectNameShort>.al",
+    "CRS.OnSaveAlFileAction": "Rename",
+    "CRS.RenameWithGit": true,
+    "CRS.ObjectNamePrefix": "",
+    "CRS.ObjectNameSuffix": "",
+    "vsicons.presets.nestjs": true,
+    
+    "al.codeAnalyzers": ["${PerTenantExtensionCop}","${CodeCop}", "${UICop}"],
+    "al.enableCodeAnalysis": true,
+    "al.ruleSetPath": "./nrm.ruleset.json",
+    "al.backgroundCodeAnalysis": true
+}

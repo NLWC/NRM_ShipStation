@@ -1,0 +1,15 @@
+{
+    "name": "nrm ruleset",
+    "rules": [
+        {                    
+            "id": "AA0072",
+            "action": "Hidden",
+            "justification": "Our naming strategry is ok" 
+        },
+        {
+            "id": "AA0218",
+            "action": "Hidden",
+            "justification": "Ingore tooltip warnings"
+        }
+    ]
+}
