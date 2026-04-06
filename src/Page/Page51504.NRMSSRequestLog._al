@@ -1,0 +1,256 @@
+page 51504 "NRM SS Request Log"
+{
+    Caption = 'ShipStation Request Log';
+    PageType = Card;
+    ApplicationArea = All;
+    SourceTable = "NRM SS Request Log";
+    Editable = false;
+
+    layout
+    {
+        area(content)
+        {
+            group(Request)
+            {
+                Caption = 'Request';
+
+                field("Entry No."; Rec."Entry No.")
+                {
+                    ApplicationArea = All;
+                }
+                field("Request ID"; Rec."Request ID")
+                {
+                    ApplicationArea = All;
+                }
+                field("Endpoint Code"; Rec."Endpoint Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("HTTP Method"; Rec."HTTP Method")
+                {
+                    ApplicationArea = All;
+                }
+                field("Request DateTime"; Rec."Request DateTime")
+                {
+                    ApplicationArea = All;
+                }
+                field("Request URL"; Rec."Request URL")
+                {
+                    ApplicationArea = All;
+                    ExtendedDatatype = URL;
+                }
+            }
+            group(Response)
+            {
+                Caption = 'Response';
+
+                field("Response Status Code"; Rec."Response Status Code")
+                {
+                    ApplicationArea = All;
+                    StyleExpr = GetStatusCodeStyle();
+                }
+                field("Response DateTime"; Rec."Response DateTime")
+                {
+                    ApplicationArea = All;
+                }
+                field(Success; Rec.Success)
+                {
+                    ApplicationArea = All;
+                    StyleExpr = GetSuccessStyle();
+                }
+                field("Duration (ms)"; Rec."Duration (ms)")
+                {
+                    ApplicationArea = All;
+                }
+                field("Error Message"; Rec."Error Message")
+                {
+                    ApplicationArea = All;
+                    StyleExpr = 'Attention';
+                    MultiLine = true;
+                }
+            }
+            group(User)
+            {
+                Caption = 'User & Company';
+
+                field("User ID"; Rec."User ID")
+                {
+                    ApplicationArea = All;
+                }
+                field("Company Name"; Rec."Company Name")
+                {
+                    ApplicationArea = All;
+                }
+            }
+        }
+        area(factboxes)
+        {
+            part("Request Headers"; "NRM SS Request Headers")
+            {
+                ApplicationArea = All;
+                Caption = 'Request Headers';
+                Provider = Rec;
+                SubPageView = sorting("Entry No.");
+            }
+            part("Request Body"; "NRM ShipStation Request Body")
+            {
+                ApplicationArea = All;
+                Caption = 'Request Body';
+                Provider = Rec;
+                SubPageView = sorting("Entry No.");
+            }
+            part("Response Headers"; "NRM ShipStation Response Headers")
+            {
+                ApplicationArea = All;
+                Caption = 'Response Headers';
+                Provider = Rec;
+                SubPageView = sorting("Entry No.");
+            }
+            part("Response Body"; "NRM ShipStation Response Body")
+            {
+                ApplicationArea = All;
+                Caption = 'Response Body';
+                Provider = Rec;
+                SubPageView = sorting("Entry No.");
+            }
+        }
+    }
+
+    actions
+    {
+        area(processing)
+        {
+            action("Open Request URL")
+            {
+                Caption = 'Open Request URL';
+                ApplicationArea = All;
+                Image = Link;
+                ToolTip = 'Open the request URL in a web browser.';
+
+                trigger OnAction()
+                var
+                    Hyperlink: Text;
+                begin
+                    if Rec."Request URL" <> '' then
+                        Hyperlink.OpenInNewWindow(Rec."Request URL");
+                end;
+            }
+            // action("Copy Request URL")
+            // {
+            //     Caption = 'Copy Request URL';
+            //     ApplicationArea = All;
+            //     Image = Copy;
+            //     ToolTip = 'Copy the request URL to clipboard.';
+
+            //     trigger OnAction()
+            //     begin
+            //         if Rec."Request URL" <> '' then
+            //             CopyToClipboard(Rec."Request URL");
+            //     end;
+            // }
+            // action("Copy Request Headers")
+            // {
+            //     Caption = 'Copy Request Headers';
+            //     ApplicationArea = All;
+            //     Image = Copy;
+            //     ToolTip = 'Copy the request headers to clipboard.';
+
+            //     trigger OnAction()
+            //     var
+            //         Headers: Text;
+            //     begin
+            //         Headers := Rec.GetRequestHeaders(Rec."Request ID");
+            //         if Headers <> '' then
+            //             CopyToClipboard(Headers);
+            //     end;
+            // }
+            // action("Copy Request Body")
+            // {
+            //     Caption = 'Copy Request Body';
+            //     ApplicationArea = All;
+            //     Image = Copy;
+            //     ToolTip = 'Copy the request body to clipboard.';
+
+            //     trigger OnAction()
+            //     var
+            //         Body: Text;
+            //     begin
+            //         Body := Rec.GetRequestBody(Rec."Request ID");
+            //         if Body <> '' then
+            //             CopyToClipboard(Body);
+            //     end;
+            // }
+            // action("Copy Response Headers")
+            // {
+            //     Caption = 'Copy Response Headers';
+            //     ApplicationArea = All;
+            //     Image = Copy;
+            //     ToolTip = 'Copy the response headers to clipboard.';
+
+            //     trigger OnAction()
+            //     var
+            //         Headers: Text;
+            //     begin
+            //         Headers := Rec.GetResponseHeaders(Rec."Request ID");
+            //         if Headers <> '' then
+            //             CopyToClipboard(Headers);
+            //     end;
+            // }
+            // action("Copy Response Body")
+            // {
+            //     Caption = 'Copy Response Body';
+            //     ApplicationArea = All;
+            //     Image = Copy;
+            //     ToolTip = 'Copy the response body to clipboard.';
+
+            //     trigger OnAction()
+            //     var
+            //         Body: Text;
+            //     begin
+            //         Body := Rec.GetResponseBody(Rec."Request ID");
+            //         if Body <> '' then
+            //             CopyToClipboard(Body);
+            //     end;
+            // }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref("Open Request URL_Promoted"; "Open Request URL")
+                {
+                }
+            }
+        }
+    }
+
+    local procedure GetStatusCodeStyle(): Text
+    begin
+        if Rec."Response Status Code" >= 200 then
+            if Rec."Response Status Code" < 300 then
+                exit('Favorable')
+            else if Rec."Response Status Code" < 400 then
+                exit('Attention')
+            else
+                exit('Unfavorable');
+        exit('');
+    end;
+
+    local procedure GetSuccessStyle(): Text
+    begin
+        if Rec.Success then
+            exit('Favorable')
+        else
+            exit('Unfavorable');
+    end;
+
+    // local procedure CopyToClipboard(TextToCopy: Text)
+    // var
+    //     Clipboard: Codeunit "Clipboard";
+    // begin
+    //     if TextToCopy <> '' then
+    //         Clipboard.Copy(TextToCopy);
+    // end;
+}

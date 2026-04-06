@@ -1,0 +1,70 @@
+page 51508 "NRM SS Ship-To Addresses"
+{
+    Caption = 'ShipStation Ship-To Addresses';
+    PageType = List;
+    ApplicationArea = All;
+    SourceTable = "NRM SS ShipToAddres";
+    Editable = false;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field("Shipment ID"; Rec."Shipment ID")
+                {
+                    ApplicationArea = All;
+                }
+                field(Name; Rec.Name)
+                {
+                    ApplicationArea = All;
+                }
+                field(Company; Rec.Company)
+                {
+                    ApplicationArea = All;
+                }
+                field(Phone; Rec.Phone)
+                {
+                    ApplicationArea = All;
+                }
+                field(Email; Rec.Email)
+                {
+                    ApplicationArea = All;
+                }
+                field("Address Line 1"; Rec."Address Line 1")
+                {
+                    ApplicationArea = All;
+                }
+                field("Address Line 2"; Rec."Address Line 2")
+                {
+                    ApplicationArea = All;
+                }
+                field("Address Line 3"; Rec."Address Line 3")
+                {
+                    ApplicationArea = All;
+                }
+                field("City Locality"; Rec."City Locality")
+                {
+                    ApplicationArea = All;
+                }
+                field("State Province"; Rec."State Province")
+                {
+                    ApplicationArea = All;
+                }
+                field("Postal Code"; Rec."Postal Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("Country Code"; Rec."Country Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("Address Residential Indicator"; Rec."Address Residential Indicator")
+                {
+                    ApplicationArea = All;
+                }
+            }
+        }
+    }
+}

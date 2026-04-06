@@ -1,0 +1,29 @@
+page 51512 "NRM SS Responce Headers"
+{
+    Caption = 'Response Headers';
+    PageType = CardPart;
+    ApplicationArea = All;
+    SourceTable = "NRM SS Request Log";
+
+    layout
+    {
+        area(content)
+        {
+            field(ResponseHeaders; ResponseHeadersText)
+            {
+                ApplicationArea = All;
+                Caption = 'Response Headers';
+                MultiLine = true;
+                Editable = false;
+            }
+        }
+    }
+
+    var
+        ResponseHeadersText: Text;
+
+    trigger OnAfterGetRecord()
+    begin
+        ResponseHeadersText := Rec.GetResponseHeaders(Rec."Request ID");
+    end;
+}
