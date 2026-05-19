@@ -150,11 +150,13 @@ page 51501 "NRM SS Shipments"
 
                 trigger OnAction()
                 var
+                    NRMSSShipment: Record "NRM SS Shipment";
                     ShipStationMgt: Codeunit "NRM ShipStation Management";
                     CustomerNo: Code[20];
                     SalesOrderNo: Code[20];
                 begin
-                    if ShipStationMgt.CreateSalesOrderFromShipStation(Rec, CustomerNo, SalesOrderNo) then
+                    CurrPage.SetSelectionFilter(NRMSSShipment);
+                    if ShipStationMgt.CreateSalesOrderFromShipStation(NRMSSShipment, CustomerNo, SalesOrderNo) then
                         Message('Sales order created successfully.')
                     else
                         Message(GetLastErrorText);

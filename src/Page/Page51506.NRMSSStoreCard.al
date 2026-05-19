@@ -17,27 +17,26 @@ page 51506 "NRM SS Store Card"
             {
                 field("Store ID"; Rec."Store ID")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Store ID field.', Comment = '%';
                 }
                 field("Store Name"; Rec."Store Name")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Store Name field.', Comment = '%';
                 }
                 field("Marketplace Name"; Rec."Marketplace Name")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Marketplace Name field.', Comment = '%';
                 }
                 field("Account Name"; Rec."Account Name")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Account Name field.', Comment = '%';
                 }
                 field(Active; Rec.Active)
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Active field.', Comment = '%';
                 }
                 field(Blocked; Rec.Blocked)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Blocked field.', Comment = '%';
                 }
             }
@@ -45,26 +44,41 @@ page 51506 "NRM SS Store Card"
             {
                 field("Customer Template Code"; Rec."Customer Template Code")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Customer Template Code field.', Comment = '%';
                 }
                 field("Customer Prefix"; Rec."Customer Prefix")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Customer Prefix field.', Comment = '%';
                 }
                 field("Prefix Order No."; Rec."Prefix Order No.")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Prefix Order No. field.', Comment = '%';
                 }
                 field("Website"; Rec."Website")
                 {
-                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Website field.', Comment = '%';
                 }
                 field("Shipping Account No."; Rec."Shipping Account No.")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Shipping Account No. field.', Comment = '%';
                 }
+                field("Journal Template Name"; Rec."Journal Template Name")
+                {
+                    ToolTip = 'Specifies the value of the Journal Template Name field.', Comment = '%';
+                }
+                field("Journal Batch Name"; Rec."Journal Batch Name")
+                {
+                    ToolTip = 'Specifies the value of the Journal Batch Name field.', Comment = '%';
+                }
+                field("Clearing Account No."; Rec."Clearing Account No.")
+                {
+                    ToolTip = 'Specifies the value of the Clearing Account No. field.', Comment = '%';
+                }
+            }
+            part(Fees; "NRM SS Fees")
+            {
+                Caption = 'Fees';
+                SubPageLink = "Store ID" = field("Store ID");
             }
         }
     }

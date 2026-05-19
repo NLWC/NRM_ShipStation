@@ -62,6 +62,24 @@ table 51504 "NRM SS Store"
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
         }
+        field(12; "Journal Template Name"; Code[10])
+        {
+            Caption = 'Journal Template Name';
+            DataClassification = SystemMetadata;
+            TableRelation = "Gen. Journal Template".Name;
+        }
+        field(13; "Journal Batch Name"; Code[10])
+        {
+            Caption = 'Journal Batch Name';
+            DataClassification = SystemMetadata;
+            TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
+        }
+        field(14; "Clearing Account No."; Code[20])
+        {
+            Caption = 'Clearing Account No.';
+            DataClassification = SystemMetadata;
+            TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
+        }
     }
 
     keys
