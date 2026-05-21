@@ -156,10 +156,14 @@ page 51501 "NRM SS Shipments"
                     SalesOrderNo: Code[20];
                 begin
                     CurrPage.SetSelectionFilter(NRMSSShipment);
-                    if ShipStationMgt.CreateSalesOrderFromShipStation(NRMSSShipment, CustomerNo, SalesOrderNo) then
-                        Message('Sales order created successfully.')
-                    else
-                        Message(GetLastErrorText);
+                    if NRMSSShipment.FindFirst() then
+                        repeat
+                            if not ShipStationMgt.CreateSalesOrderFromShipStation(NRMSSShipment, CustomerNo, SalesOrderNo) then begin
+                                Message(GetLastErrorText);
+                                exit;
+                            end;
+                        until NRMSSShipment.Next() = 0;
+                    Message('Sales order created successfully.')
                 end;
             }
             action(Items)

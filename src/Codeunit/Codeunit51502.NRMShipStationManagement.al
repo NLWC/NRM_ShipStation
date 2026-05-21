@@ -356,9 +356,12 @@ codeunit 51502 "NRM ShipStation Management"
 
     local procedure UpdateShipStationSalesOrderFees(xStoreID: Code[20]; var xSalesHeader: Record "Sales Header")
     var
+        GenJnlBatch: Record "Gen. Journal Batch";
         NRMSSFee: Record "NRM SS Fee";
         SalesLine: Record "Sales Line";
+        NoSeries: Codeunit "No. Series";
         FeeAmount, TotalFeeAmount : Decimal;
+        DocumentNo: Code[20];
     begin
         NRMSSFee.Reset();
         NRMSSFee.SetRange("Store ID", xStoreID);
@@ -366,6 +369,14 @@ codeunit 51502 "NRM ShipStation Management"
         if NRMSSFee.FindSet() then begin
             FeeAmount := 0;
             TotalFeeAmount := 0;
+
+            GetSSStore(xStoreID);
+            SSStore.TestField("Shipping Account No.");
+
+            GenJnlBatch.Get(SSStore."Journal Template Name", SSStore."Journal Batch Name");
+            GenJnlBatch.TestField("No. Series");
+            DocumentNo := NoSeries.GetNextNo(GenJnlBatch."No. Series", xSalesHeader."Posting Date");
+
             repeat
                 FeeAmount := NRMSSFee.Constant;
 
@@ -382,9 +393,6 @@ codeunit 51502 "NRM ShipStation Management"
                 FeeAmount += GetTotalAmount(NRMSSFee."Item Total %", SalesLine."Amount Including VAT");
 
                 // Shipping Total %
-                GetSSStore(xStoreID);
-                SSStore.TestField("Shipping Account No.");
-
                 SalesLine.SetRange(Type, Enum::"Sales Line Type"::"G/L Account");
                 SalesLine.SetRange("No.", SSStore."Shipping Account No.");
                 SalesLine.CalcSums("Amount Including VAT");
@@ -398,25 +406,42 @@ codeunit 51502 "NRM ShipStation Management"
                 // Insert Fee Journal Line if FeeAmount > 0
                 if FeeAmount > 0 then
                     InsertFeeJournalLine(false, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                         NRMSSFee, FeeAmount);
+                                         NRMSSFee, FeeAmount, xSalesHeader."Posting Date", DocumentNo,
+                                         xSalesHeader."Your Reference");
 
                 TotalFeeAmount += FeeAmount;
             until NRMSSFee.Next() = 0;
         end;
         if TotalFeeAmount > 0 then
             InsertFeeJournalLine(true, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                 NRMSSFee, TotalFeeAmount);
+                                 NRMSSFee, TotalFeeAmount, xSalesHeader."Posting Date", DocumentNo,
+                                 xSalesHeader."Your Reference");
     end;
 
     local procedure InsertFeeJournalLine(xCreateClearingLine: Boolean;
                                          xJournalTemplateName: Code[10]; xJournalBatchName: Code[10];
-                                         xNRMSSFee: Record "NRM SS Fee"; xFeeAmount: Decimal)
+                                         xNRMSSFee: Record "NRM SS Fee"; xFeeAmount: Decimal;
+                                         xPostingDate: Date; xDocumentNo: Code[20];
+                                         xExternalDocumentNo: Text[35])
     var
         GenJournalLine: Record "Gen. Journal Line";
+        LastGenJournalLine: Record "Gen. Journal Line";
     begin
         GenJournalLine.Init();
         GenJournalLine."Journal Template Name" := xJournalTemplateName;
         GenJournalLine."Journal Batch Name" := xJournalBatchName;
+
+        LastGenJournalLine.SetRange("Journal Template Name", xJournalTemplateName);
+        LastGenJournalLine.SetRange("Journal Batch Name", xJournalBatchName);
+        if LastGenJournalLine.FindLast() then
+            GenJournalLine."Line No." := LastGenJournalLine."Line No." + 10000
+        else
+            GenJournalLine."Line No." := 10000;
+
+        GenJournalLine."Posting Date" := xPostingDate;
+        GenJournalLine."Document Date" := xPostingDate;
+        GenJournalLine."Document No." := xDocumentNo;
+        GenJournalLine."External Document No." := xExternalDocumentNo;
         GenJournalLine.Insert(true);
 
         if xCreateClearingLine then begin
