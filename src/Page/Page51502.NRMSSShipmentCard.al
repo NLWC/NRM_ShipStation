@@ -37,6 +37,10 @@ page 51502 "NRM SS Shipment Card"
                 {
                     ToolTip = 'Specifies the date when the shipment was shipped.';
                 }
+                field("Ship by Date"; Rec."Ship by Date")
+                {
+                    ToolTip = 'Specifies the value of the Ship by Date field.', Comment = '%';
+                }
                 field("Carrier ID"; Rec."Carrier ID")
                 {
                     ToolTip = 'Specifies the carrier ID for this shipment.';
@@ -84,6 +88,10 @@ page 51502 "NRM SS Shipment Card"
                 field("Store ID"; Rec."Store ID")
                 {
                     ToolTip = 'Specifies the store ID from ShipStation.';
+                }
+                field("Store Name"; Rec."Store Name")
+                {
+                    ToolTip = 'Specifies the value of the Store Name field.', Comment = '%';
                 }
                 field("Ship To Name"; Rec."Ship To Name")
                 {

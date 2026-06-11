@@ -197,8 +197,10 @@ codeunit 51502 "NRM ShipStation Management"
 
         xSalesHeader.Validate("Ship-to Post Code", xShipStationShipment."Ship To Postal Code");
 
-        xSalesHeader.Validate("Document Date", WorkDate());
+        if xSalesHeader."Document Date" = 0D then
+            xSalesHeader.Validate("Document Date", WorkDate());
         xSalesHeader.Validate("Posting Date", WorkDate());
+        xSalesHeader.Validate("Order Date", GetDate(xShipStationShipment."Ship by Date"));
         xSalesHeader.Validate("Your Reference", GetYourReference(xSalesHeader."NRM ShipStation Id", xShipStationShipment."Store ID"));
     end;
 
@@ -459,6 +461,7 @@ codeunit 51502 "NRM ShipStation Management"
             if xNRMSSFee.Description <> '' then
                 GenJournalLine.Validate(Description, xNRMSSFee.Description);
             GenJournalLine.Validate(Amount, -xFeeAmount);
+            GenJournalLine.Validate(Description, xNRMSSFee.Description);
         end;
         GenJournalLine.Modify(true);
     end;
@@ -480,6 +483,14 @@ codeunit 51502 "NRM ShipStation Management"
         xSalesHeader.Validate("Shipping Agent Service Code", xShipStationShipment."Service Code");
     end;
 
+    local procedure GetDate(xTextByDate: Text[30]): Date
+    var
+        DateTimeValue: DateTime;
+    begin
+        if not Evaluate(DateTimeValue, xTextByDate) then exit(0D);
+        exit(DT2Date(DateTimeValue));
+    end;
+
     var
         SSStore: Record "NRM SS Store";
         ShipStationSetup: Record "NRM ShipStation Setup";
@@ -488,6 +499,4 @@ codeunit 51502 "NRM ShipStation Management"
         SalesInvoiceAlreadyExistsErr: Label 'Sales Invoice already exists with No.= %1 and ShipStation ID = %2!', Comment = '%1 = Sales Invoice No., %2 = ShipStation ID';
         EmptyEmailErr: Label 'Email is empty not allowed!';
         AddressLbl: Label '%1 %2 %3', Comment = '%1 = Ship To Address 1, %2 = Ship To Address 2, %3 = Ship To Address 3';
-    // ItemNotFoundQst: Label 'Item %1 not found! Do you want to create it?', Comment = '%1 = SKU';
-    // ItemNotFoundErr: Label 'Item %1 not found and user did not want to create it!', Comment = '%1 = SKU';
 }

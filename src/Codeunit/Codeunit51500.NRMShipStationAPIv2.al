@@ -148,6 +148,10 @@ codeunit 51500 "NRM ShipStation API v2"
         if ShipmentObj.Get('shipment_status', JsonToken) and not JsonToken.AsValue().IsNull() then
             Evaluate(xShipStationShipment."Shipment Status", JsonToken.AsValue().AsText());
 
+
+        if ShipmentObj.Get('ship_by_date', JsonToken) and not JsonToken.AsValue().IsNull() then
+            xShipStationShipment."Ship by Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship by Date"));
+
         if ShipmentObj.Get('ship_date', JsonToken) and not JsonToken.AsValue().IsNull() then
             xShipStationShipment."Ship Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship Date"));
 

@@ -114,6 +114,18 @@ table 51505 "NRM SS Shipment"
             Caption = 'Requested Shipment Service';
             DataClassification = SystemMetadata;
         }
+        field(23; "Ship by Date"; Text[30])
+        {
+            Caption = 'Ship by Date';
+            DataClassification = SystemMetadata;
+        }
+        field(24; "Store Name"; Text[100])
+        {
+            Caption = 'Store Name';
+            FieldClass = FlowField;
+            CalcFormula = Lookup("NRM SS Store"."Store Name" where("Store ID" = field("Store ID")));
+            Editable = false;
+        }
     }
 
     keys
@@ -122,5 +134,6 @@ table 51505 "NRM SS Shipment"
         {
             Clustered = true;
         }
+        key(StoreId; "Store ID") { }
     }
 }
