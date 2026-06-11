@@ -2,7 +2,7 @@
   "id": "79794a29-95b3-41c4-bc79-d1b4f5757f7d",
   "name": "ShipStation",
   "publisher": "Norma",
-  "version": "27.4.1.0",
+  "version": "28.1.1.0",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -33,7 +33,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "runtime": "16.0",
+  "runtime": "17.0",
   "features": [
     "NoImplicitWith"
   ]

@@ -22,6 +22,22 @@ page 51501 "NRM SS Shipments"
                 {
                     ToolTip = 'Specifies the unique shipment identifier from ShipStation.';
                 }
+                field("Store ID"; Rec."Store ID")
+                {
+                    ToolTip = 'Specifies the store ID from ShipStation.';
+                }
+                field("Store Name"; Rec."Store Name")
+                {
+                    ToolTip = 'Specifies the value of the Store Name field.', Comment = '%';
+                }
+                field("Sales Order No."; Rec."Sales Order No.")
+                {
+                    ToolTip = 'Specifies the value of the Sales Order No. field.', Comment = '%';
+                }
+                field("Posted Invoice No."; Rec."Posted Invoice No.")
+                {
+                    ToolTip = 'Specifies the value of the Posted Invoice No. field.', Comment = '%';
+                }
                 field("External Shipment ID"; Rec."External Shipment ID")
                 {
                     ToolTip = 'Specifies the external shipment identifier.';
@@ -42,6 +58,10 @@ page 51501 "NRM SS Shipments"
                 {
                     ToolTip = 'Specifies the value of the Ship by Date field.', Comment = '%';
                 }
+                field("Created At"; Rec."Created At")
+                {
+                    ToolTip = 'Specifies the value of the Created At field.', Comment = '%';
+                }
                 field("Ship To Name"; Rec."Ship To Name")
                 {
                     ToolTip = 'Specifies the recipient name.';
@@ -49,14 +69,6 @@ page 51501 "NRM SS Shipments"
                 field(Email; Rec.Email)
                 {
                     ToolTip = 'Specifies the email address of the recipient.';
-                }
-                field("Store ID"; Rec."Store ID")
-                {
-                    ToolTip = 'Specifies the store ID from ShipStation.';
-                }
-                field("Store Name"; Rec."Store Name")
-                {
-                    ToolTip = 'Specifies the value of the Store Name field.', Comment = '%';
                 }
                 field("Ship To Address 1"; Rec."Ship To Address 1")
                 {
@@ -196,4 +208,9 @@ page 51501 "NRM SS Shipments"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Store Name");
+    end;
 }

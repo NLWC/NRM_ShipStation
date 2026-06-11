@@ -200,7 +200,7 @@ codeunit 51502 "NRM ShipStation Management"
         if xSalesHeader."Document Date" = 0D then
             xSalesHeader.Validate("Document Date", WorkDate());
         xSalesHeader.Validate("Posting Date", WorkDate());
-        xSalesHeader.Validate("Order Date", GetDate(xShipStationShipment."Ship by Date"));
+        xSalesHeader.Validate("Order Date", GetDate(xShipStationShipment."Created At"));
         xSalesHeader.Validate("Your Reference", GetYourReference(xSalesHeader."NRM ShipStation Id", xShipStationShipment."Store ID"));
     end;
 

@@ -41,6 +41,10 @@ page 51502 "NRM SS Shipment Card"
                 {
                     ToolTip = 'Specifies the value of the Ship by Date field.', Comment = '%';
                 }
+                field("Created At"; Rec."Created At")
+                {
+                    ToolTip = 'Specifies the value of the Created At field.', Comment = '%';
+                }
                 field("Carrier ID"; Rec."Carrier ID")
                 {
                     ToolTip = 'Specifies the carrier ID for this shipment.';

@@ -126,6 +126,25 @@ table 51505 "NRM SS Shipment"
             CalcFormula = Lookup("NRM SS Store"."Store Name" where("Store ID" = field("Store ID")));
             Editable = false;
         }
+        field(25; "Sales Order No."; Code[20])
+        {
+            Caption = 'Sales Order No.';
+            FieldClass = FlowField;
+            CalcFormula = Lookup("Sales Header"."No." where("Document Type" = const(Order), "NRM ShipStation Id" = field("Shipment ID")));
+            Editable = false;
+        }
+        field(26; "Posted Invoice No."; Code[20])
+        {
+            Caption = 'Posted Invoice No.';
+            FieldClass = FlowField;
+            CalcFormula = Lookup("Sales Invoice Header"."No." where("NRM ShipStation Id" = field("Shipment ID")));
+            Editable = false;
+        }
+        field(27; "Created At"; Text[30])
+        {
+            Caption = 'Created At';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
