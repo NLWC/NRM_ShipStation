@@ -80,6 +80,18 @@ table 51504 "NRM SS Store"
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
         }
+        field(15; "Colorado Fee Code"; Code[20])
+        {
+            Caption = 'Colorado Fee Code';
+            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
+            DataClassification = SystemMetadata;
+        }
+        field(16; "Tax Account No."; Code[20])
+        {
+            Caption = 'Tax Account No.';
+            DataClassification = SystemMetadata;
+            TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
+        }
     }
 
     keys

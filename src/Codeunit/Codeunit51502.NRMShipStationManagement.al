@@ -54,7 +54,8 @@ codeunit 51502 "NRM ShipStation Management"
 
         UpdateShipStationSalesOrderDiscount(SalesHeader);
         UpdateShipStationSalesOrderShippingLine(xSSShipment, SalesHeader, LineNo);
-        UpdateShipStationSalesOrderTaxLine(SalesHeader, LineNo);
+        UpdateShipStationSalesOrderTaxLine(SalesHeader, LineNo, xSSShipment."Store ID");
+        ShipStationSalesOrderColoradoFeeOnInsert(xSSShipment."Store ID", SalesHeader, LineNo);
         UpdateShipStationSalesOrderChargeLineFromShippingAgentCode(xSSShipment, SalesHeader, LineNo);
 
         UpdateShipStationSalesOrderFees(xSSShipment."Store ID", SalesHeader);
@@ -197,14 +198,13 @@ codeunit 51502 "NRM ShipStation Management"
 
         xSalesHeader.Validate("Ship-to Post Code", xShipStationShipment."Ship To Postal Code");
 
-        if xSalesHeader."Document Date" = 0D then
-            xSalesHeader.Validate("Document Date", WorkDate());
-        xSalesHeader.Validate("Posting Date", WorkDate());
-        xSalesHeader.Validate("Order Date", GetDate(xShipStationShipment."Created At"));
-        xSalesHeader.Validate("Your Reference", GetYourReference(xSalesHeader."NRM ShipStation Id", xShipStationShipment."Store ID"));
+        xSalesHeader.Validate("Document Date", GetDate(xShipStationShipment."Created At"));
+        xSalesHeader.Validate("Posting Date", xSalesHeader."Document Date");
+        xSalesHeader.Validate("Order Date", xSalesHeader."Document Date");
+        xSalesHeader.Validate("Your Reference", GetYourReference(xShipStationShipment."External Shipment ID", xShipStationShipment."Store ID"));
     end;
 
-    local procedure GetYourReference(xSalesHeaderShipStationId: Text[50]; xStoreId: Text[20]): Text[35]
+    local procedure GetYourReference(xSalesHeaderShipStationId: Text[100]; xStoreId: Text[20]): Text[35]
     begin
         GetSSStore(xStoreId);
         SSStore.TestField("Prefix Order No.");
@@ -268,15 +268,15 @@ codeunit 51502 "NRM ShipStation Management"
         SalesCalcDiscountByType.ApplyInvDiscBasedOnAmt(-SSShipmentLine."Unit Price Amount", xSalesHeader);
     end;
 
-    local procedure UpdateShipStationSalesOrderTaxLine(var xSalesHeader: Record "Sales Header"; var xLineNo: Integer)
+    local procedure UpdateShipStationSalesOrderTaxLine(var xSalesHeader: Record "Sales Header";
+                                                       var xLineNo: Integer; xStoreID: Text[20])
     var
         SalesLine: Record "Sales Line";
+        TaxAccountNo: Code[20];
     begin
         if xSalesHeader."NRM ShipStation Tax" = 0 then exit;
 
-        GetShipStationSetup();
-        if ShipStationSetup."No Tax" then exit;
-        ShipStationSetup.TestField("Tax Account No.");
+        GetTaxAccountNo(xStoreID, TaxAccountNo);
 
         SalesLine.Init();
         SalesLine."Document Type" := xSalesHeader."Document Type";
@@ -285,12 +285,55 @@ codeunit 51502 "NRM ShipStation Management"
         SalesLine.Insert(true);
 
         SalesLine.Validate(Type, Enum::"Sales Line Type"::"G/L Account");
-        SalesLine.Validate("No.", ShipStationSetup."Tax Account No.");
+        SalesLine.Validate("No.", TaxAccountNo);
         SalesLine.Validate(Quantity, 1);
         SalesLine.Validate("Unit Price", xSalesHeader."NRM ShipStation Tax");
 
         if ShipStationSetup."Tax Description" <> '' then
             SalesLine.Description := ShipStationSetup."Tax Description";
+
+        SalesLine.Modify(true);
+
+        xLineNo += 10000;
+    end;
+
+    local procedure ShipStationSalesOrderColoradoFeeOnInsert(xStoreID: Code[20]; xSalesHeader: Record "Sales Header"; var xLineNo: Integer)
+    var
+        NRMSSFee: Record "NRM SS Fee";
+        SalesLine: Record "Sales Line";
+        FeeAmount: Decimal;
+    begin
+        if SSStore."Store ID" <> xStoreID then
+            if not SSStore.Get(xStoreID) or (SSStore."Colorado Fee Code" = '') then exit;
+        SSStore.TestField("Shipping Account No.");
+
+        NRMSSFee.Reset();
+        NRMSSFee.SetRange("Store ID", xStoreID);
+        NRMSSFee.SetRange(Code, SSStore."Colorado Fee Code");
+        NRMSSFee.SetFilter("County Delivery", '<>%1', '');
+        if not NRMSSFee.FindFirst() then exit;
+        GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Account No.", FeeAmount);
+        if FeeAmount = 0 then exit;
+
+        if xSalesHeader."Ship-to County" <> NRMSSFee."County Delivery" then exit;
+
+        NRMSSFee.TestField("Account No.");
+
+        SalesLine.Init();
+        SalesLine."Document Type" := xSalesHeader."Document Type";
+        SalesLine."Document No." := xSalesHeader."No.";
+        SalesLine."Line No." := xLineNo;
+        SalesLine.Insert(true);
+
+        SalesLine.Validate(Type, Enum::"Sales Line Type"::"G/L Account");
+        SalesLine.Validate("No.", NRMSSFee."Account No.");
+        SalesLine.Validate(Quantity, 1);
+
+
+        SalesLine.Validate("Unit Price", FeeAmount);
+
+        if NRMSSFee.Description <> '' then
+            SalesLine.Description := NRMSSFee.Description;
 
         SalesLine.Modify(true);
 
@@ -360,7 +403,6 @@ codeunit 51502 "NRM ShipStation Management"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
         NRMSSFee: Record "NRM SS Fee";
-        SalesLine: Record "Sales Line";
         NoSeries: Codeunit "No. Series";
         FeeAmount, TotalFeeAmount : Decimal;
         DocumentNo: Code[20];
@@ -377,38 +419,15 @@ codeunit 51502 "NRM ShipStation Management"
 
             GenJnlBatch.Get(SSStore."Journal Template Name", SSStore."Journal Batch Name");
             GenJnlBatch.TestField("No. Series");
-            DocumentNo := NoSeries.GetNextNo(GenJnlBatch."No. Series", xSalesHeader."Posting Date");
+            DocumentNo := NoSeries.GetNextNo(GenJnlBatch."No. Series", xSalesHeader."Order Date");
 
             repeat
-                FeeAmount := NRMSSFee.Constant;
-
-                // Order Total %
-                xSalesHeader.CalcFields("Amount Including VAT");
-                FeeAmount += GetTotalAmount(NRMSSFee."Order Total %", xSalesHeader."Amount Including VAT");
-
-                // Item Total %
-                SalesLine.Reset();
-                SalesLine.SetRange("Document Type", xSalesHeader."Document Type");
-                SalesLine.SetRange("Document No.", xSalesHeader."No.");
-                SalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
-                SalesLine.CalcSums("Amount Including VAT");
-                FeeAmount += GetTotalAmount(NRMSSFee."Item Total %", SalesLine."Amount Including VAT");
-
-                // Shipping Total %
-                SalesLine.SetRange(Type, Enum::"Sales Line Type"::"G/L Account");
-                SalesLine.SetRange("No.", SSStore."Shipping Account No.");
-                SalesLine.CalcSums("Amount Including VAT");
-                FeeAmount += GetTotalAmount(NRMSSFee."Shipping Total %", SalesLine."Amount Including VAT");
-
-                // State Delivery
-                if (NRMSSFee."County Delivery" <> '')
-                and (xSalesHeader."Ship-to County" <> NRMSSFee."County Delivery") then
-                    FeeAmount := 0;
+                GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Account No.", FeeAmount);
 
                 // Insert Fee Journal Line if FeeAmount > 0
                 if FeeAmount > 0 then
                     InsertFeeJournalLine(false, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                         NRMSSFee, FeeAmount, xSalesHeader."Posting Date", DocumentNo,
+                                         NRMSSFee, FeeAmount, xSalesHeader."Order Date", DocumentNo,
                                          xSalesHeader."Your Reference");
 
                 TotalFeeAmount += FeeAmount;
@@ -416,7 +435,7 @@ codeunit 51502 "NRM ShipStation Management"
         end;
         if TotalFeeAmount > 0 then
             InsertFeeJournalLine(true, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                 NRMSSFee, TotalFeeAmount, xSalesHeader."Posting Date", DocumentNo,
+                                 NRMSSFee, TotalFeeAmount, xSalesHeader."Order Date", DocumentNo,
                                  xSalesHeader."Your Reference");
     end;
 
@@ -471,30 +490,79 @@ codeunit 51502 "NRM ShipStation Management"
         exit(xOrderTotalAmount * xOrderTotalPercent / 100);
     end;
 
-    local procedure ShippingAreaProcessing(var xShipStationShipment: Record "NRM SS Shipment";
-                                           var xSalesHeader: Record "Sales Header")
-    var
-        ShippingAgentServices: Record "Shipping Agent Services";
-    begin
-        xSalesHeader.Validate("Shipping Agent Code", xShipStationShipment."Carrier ID");
-        ShippingAgentServices.SetRange("Shipping Agent Code", xSalesHeader."Shipping Agent Code");
-        // ShippingAgentServices.SetRange(Description, CodeText);
-        ShippingAgentServices.FindFirst();
-        xSalesHeader.Validate("Shipping Agent Service Code", xShipStationShipment."Service Code");
-    end;
-
     local procedure GetDate(xTextByDate: Text[30]): Date
     var
         DateTimeValue: DateTime;
     begin
-        if not Evaluate(DateTimeValue, xTextByDate) then exit(0D);
-        exit(DT2Date(DateTimeValue));
+        if Evaluate(DateTimeValue, xTextByDate) then exit(DT2Date(DateTimeValue));
+        exit(WorkDate());
+    end;
+
+    local procedure GetFeeAmount(xSalesHeader: Record "Sales Header"; xNRMSSFee: Record "NRM SS Fee";
+                                 xShippingAccountNo: Code[20]; var xFeeAmount: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        xFeeAmount := xNRMSSFee.Constant;
+
+        // Order Total %
+        xSalesHeader.CalcFields("Amount Including VAT");
+        xFeeAmount += GetTotalAmount(xNRMSSFee."Order Total %", xSalesHeader."Amount Including VAT");
+
+        // Item Total %
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", xSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", xSalesHeader."No.");
+        SalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        SalesLine.CalcSums("Amount Including VAT");
+        xFeeAmount += GetTotalAmount(xNRMSSFee."Item Total %", SalesLine."Amount Including VAT");
+
+        // Shipping Total %
+        SalesLine.SetRange(Type, Enum::"Sales Line Type"::"G/L Account");
+        SalesLine.SetRange("No.", xShippingAccountNo);
+        SalesLine.CalcSums("Amount Including VAT");
+        xFeeAmount += GetTotalAmount(xNRMSSFee."Shipping Total %", SalesLine."Amount Including VAT");
+
+        // State Delivery
+        if (xNRMSSFee."County Delivery" <> '')
+        and (xSalesHeader."Ship-to County" <> xNRMSSFee."County Delivery") then
+            xFeeAmount := 0;
+
+        // rounding by GLSetup
+        GetGLSetup();
+        xFeeAmount := Round(xFeeAmount, GLSetup."Amount Rounding Precision");
+    end;
+
+    local procedure GetGLSetup()
+    begin
+        if GLSetupRead then exit;
+        GLSetupRead := true;
+
+        if not GLSetup.Get() then begin
+            GLSetup.Init();
+            GLSetup.Insert();
+        end;
+    end;
+
+    local procedure GetTaxAccountNo(xStoreID: Text[20]; var xTaxAccountNo: Code[20])
+    begin
+        xTaxAccountNo := '';
+        if SSStore."Store ID" <> xStoreID then
+            if not SSStore.Get(xStoreID) then exit;
+        xTaxAccountNo := SSStore."Tax Account No.";
+
+        if xTaxAccountNo <> '' then exit;
+        GetShipStationSetup();
+        if ShipStationSetup."No Tax" then exit;
+        ShipStationSetup.TestField("Tax Account No.");
+        xTaxAccountNo := ShipStationSetup."Tax Account No.";
     end;
 
     var
+        GLSetup: Record "General Ledger Setup";
         SSStore: Record "NRM SS Store";
         ShipStationSetup: Record "NRM ShipStation Setup";
-        ShipStationSetupRead: Boolean;
+        ShipStationSetupRead, GLSetupRead : Boolean;
         SalesOrderAlreadyExistsErr: Label 'Sales Order already exists with No.= %1 and ShipStation ID = %2!', Comment = '%1 = Sales Order No., %2 = ShipStation ID';
         SalesInvoiceAlreadyExistsErr: Label 'Sales Invoice already exists with No.= %1 and ShipStation ID = %2!', Comment = '%1 = Sales Invoice No., %2 = ShipStation ID';
         EmptyEmailErr: Label 'Email is empty not allowed!';

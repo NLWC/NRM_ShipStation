@@ -90,7 +90,7 @@ page 51515 "NRM SS Items"
     begin
         SSVariant.SetRange(SKU, Rec.SKU);
         SSVariant.ModifyAll("Item No.", Rec."Item No.");
-        SSVariant.ModifyAll(Status, Rec.Status);
+        SSVariant.ModifyAll(Status, Enum::"NRM SS Item Status"::Draft);
         SSVariant.ModifyAll(Variant, '');
     end;
 }

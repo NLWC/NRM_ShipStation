@@ -365,6 +365,7 @@ codeunit 51500 "NRM ShipStation API v2"
 
     local procedure SSItemVariantUpdate(xSSShipmentLine: Record "NRM SS Shipment Line")
     var
+        SSItem: Record "NRM SS Item";
         SSVariant: Record "NRM SS Variant";
     begin
         if SSVariant.Get(xSSShipmentLine.SKU, xSSShipmentLine.Option)
@@ -376,6 +377,13 @@ codeunit 51500 "NRM ShipStation API v2"
         SSVariant.Option := xSSShipmentLine.Option;
         SSVariant.Name := xSSShipmentLine.Name;
         SSVariant."Image URL" := xSSShipmentLine."Image URL";
+
+        SSItem.Reset();
+        SSItem.SetRange(SKU, xSSShipmentLine.SKU);
+        SSItem.SetLoadFields("Item No.");
+        if SSItem.FindFirst() and (SSItem."Item No." <> '') then
+            SSVariant."Item No." := SSItem."Item No.";
+
         SSVariant.Insert();
     end;
 

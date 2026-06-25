@@ -33,6 +33,11 @@ page 51501 "NRM SS Shipments"
                 field("Sales Order No."; Rec."Sales Order No.")
                 {
                     ToolTip = 'Specifies the value of the Sales Order No. field.', Comment = '%';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowSalesOrder();
+                    end;
                 }
                 field("Posted Invoice No."; Rec."Posted Invoice No.")
                 {
@@ -194,6 +199,18 @@ page 51501 "NRM SS Shipments"
                 ToolTip = 'View the list of items for the shipment.';
                 RunObject = page "NRM SS Items";
             }
+            action(GetSelectionFilterShipments)
+            {
+                Caption = 'Get Selection Filter';
+                ApplicationArea = All;
+                Image = GetBinContent;
+                ToolTip = 'View the filter for selected shipments.';
+
+                trigger OnAction()
+                begin
+                    GetSelectionFilterShipment(Rec);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -205,6 +222,7 @@ page 51501 "NRM SS Shipments"
                 actionref(GetShipmentByID_Promoted; GetShipmentByID) { }
                 actionref(CreateSalesOrder_Promoted; CreateSalesOrder) { }
                 actionref(Items_Promoted; Items) { }
+                actionref(GetSelectionFilterShipments_Promoted; GetSelectionFilterShipments) { }
             }
         }
     }
@@ -212,5 +230,22 @@ page 51501 "NRM SS Shipments"
     trigger OnAfterGetRecord()
     begin
         Rec.CalcFields("Store Name");
+    end;
+
+    local procedure ShowSalesOrder()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        if SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.") then
+            Page.Run(Page::"Sales Order", SalesHeader);
+    end;
+
+    local procedure GetSelectionFilterShipment(var xNRMSSShipment: Record "NRM SS Shipment")
+    var
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(xNRMSSShipment);
+        Message(SelectionFilterManagement.GetSelectionFilter(RecRef, xNRMSSShipment.FieldNo("Shipment ID")));
     end;
 }

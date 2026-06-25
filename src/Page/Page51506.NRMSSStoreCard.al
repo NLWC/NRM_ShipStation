@@ -74,6 +74,14 @@ page 51506 "NRM SS Store Card"
                 {
                     ToolTip = 'Specifies the value of the Clearing Account No. field.', Comment = '%';
                 }
+                field("Colorado Fee Code"; Rec."Colorado Fee Code")
+                {
+                    ToolTip = 'Specifies the value of the Colorado Fee Code field.', Comment = '%';
+                }
+                field("Tax Account No."; Rec."Tax Account No.")
+                {
+                    ToolTip = 'Specifies the value of the Tax Account No. field.', Comment = '%';
+                }
             }
             part(Fees; "NRM SS Fees")
             {
