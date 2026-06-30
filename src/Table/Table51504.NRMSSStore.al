@@ -56,7 +56,7 @@ table 51504 "NRM SS Store"
             Caption = 'Prefix Order No.';
             DataClassification = SystemMetadata;
         }
-        field(11; "Shipping Account No."; Code[20])
+        field(11; "Shipping Income Account No."; Code[20])
         {
             Caption = 'Shipping Account No.';
             DataClassification = SystemMetadata;
@@ -91,6 +91,12 @@ table 51504 "NRM SS Store"
             Caption = 'Tax Account No.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
+        }
+        field(17; "Shipping Expense"; Code[20])
+        {
+            Caption = 'Tax Account No.';
+            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
+            DataClassification = SystemMetadata;
         }
     }
 

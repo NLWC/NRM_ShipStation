@@ -305,14 +305,14 @@ codeunit 51502 "NRM ShipStation Management"
     begin
         if SSStore."Store ID" <> xStoreID then
             if not SSStore.Get(xStoreID) or (SSStore."Colorado Fee Code" = '') then exit;
-        SSStore.TestField("Shipping Account No.");
+        SSStore.TestField("Shipping Income Account No.");
 
         NRMSSFee.Reset();
         NRMSSFee.SetRange("Store ID", xStoreID);
         NRMSSFee.SetRange(Code, SSStore."Colorado Fee Code");
         NRMSSFee.SetFilter("County Delivery", '<>%1', '');
         if not NRMSSFee.FindFirst() then exit;
-        GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Account No.", FeeAmount);
+        GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Income Account No.", FeeAmount);
         if FeeAmount = 0 then exit;
 
         if xSalesHeader."Ship-to County" <> NRMSSFee."County Delivery" then exit;
@@ -349,7 +349,7 @@ codeunit 51502 "NRM ShipStation Management"
         if ShippingAgent.Get(xSalesHeader."Shipping Agent Code") then exit;
 
         GetSSStore(xShipStationShipment."Store ID");
-        SSStore.TestField("Shipping Account No.");
+        SSStore.TestField("Shipping Income Account No.");
 
         SalesLine.Init();
         SalesLine."Document Type" := xSalesHeader."Document Type";
@@ -358,7 +358,7 @@ codeunit 51502 "NRM ShipStation Management"
         SalesLine.Insert(true);
 
         SalesLine.Validate(Type, Enum::"Sales Line Type"::"G/L Account");
-        SalesLine.Validate("No.", SSStore."Shipping Account No.");
+        SalesLine.Validate("No.", SSStore."Shipping Income Account No.");
         SalesLine.Validate(Quantity, 1);
         SalesLine.Validate("Unit Price", xShipStationShipment."Shipping Amount");
 
@@ -403,7 +403,6 @@ codeunit 51502 "NRM ShipStation Management"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
         NRMSSFee: Record "NRM SS Fee";
-        NoSeries: Codeunit "No. Series";
         FeeAmount, TotalFeeAmount : Decimal;
         DocumentNo: Code[20];
     begin
@@ -415,28 +414,24 @@ codeunit 51502 "NRM ShipStation Management"
             TotalFeeAmount := 0;
 
             GetSSStore(xStoreID);
-            SSStore.TestField("Shipping Account No.");
+            SSStore.TestField("Shipping Income Account No.");
 
             GenJnlBatch.Get(SSStore."Journal Template Name", SSStore."Journal Batch Name");
             GenJnlBatch.TestField("No. Series");
             DocumentNo := NoSeries.GetNextNo(GenJnlBatch."No. Series", xSalesHeader."Order Date");
 
             repeat
-                GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Account No.", FeeAmount);
-
-                // Insert Fee Journal Line if FeeAmount > 0
-                if FeeAmount > 0 then
-                    InsertFeeJournalLine(false, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                         NRMSSFee, FeeAmount, xSalesHeader."Order Date", DocumentNo,
-                                         xSalesHeader."Your Reference");
+                GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Income Account No.", FeeAmount);
+                InsertFeeJournalLine(false, SSStore."Journal Template Name", SSStore."Journal Batch Name",
+                                     NRMSSFee, FeeAmount, xSalesHeader."Order Date", DocumentNo,
+                                     xSalesHeader."Your Reference");
 
                 TotalFeeAmount += FeeAmount;
             until NRMSSFee.Next() = 0;
         end;
-        if TotalFeeAmount > 0 then
-            InsertFeeJournalLine(true, SSStore."Journal Template Name", SSStore."Journal Batch Name",
-                                 NRMSSFee, TotalFeeAmount, xSalesHeader."Order Date", DocumentNo,
-                                 xSalesHeader."Your Reference");
+        InsertFeeJournalLine(true, SSStore."Journal Template Name", SSStore."Journal Batch Name",
+                             NRMSSFee, TotalFeeAmount, xSalesHeader."Order Date", DocumentNo,
+                             xSalesHeader."Your Reference");
     end;
 
     local procedure InsertFeeJournalLine(xCreateClearingLine: Boolean;
@@ -448,6 +443,8 @@ codeunit 51502 "NRM ShipStation Management"
         GenJournalLine: Record "Gen. Journal Line";
         LastGenJournalLine: Record "Gen. Journal Line";
     begin
+        if xFeeAmount = 0 then exit;
+
         GenJournalLine.Init();
         GenJournalLine."Journal Template Name" := xJournalTemplateName;
         GenJournalLine."Journal Batch Name" := xJournalBatchName;
@@ -472,14 +469,14 @@ codeunit 51502 "NRM ShipStation Management"
             if GenJournalLine."Account Type" <> GenJournalLine."Account Type"::"G/L Account" then
                 GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
             GenJournalLine.Validate("Account No.", SSStore."Clearing Account No.");
-            GenJournalLine.Validate(Amount, xFeeAmount);
+            GenJournalLine.Validate(Amount, -xFeeAmount);
         end else begin
             if GenJournalLine."Account Type" <> GenJournalLine."Account Type"::"G/L Account" then
                 GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
             GenJournalLine.Validate("Account No.", xNRMSSFee."Account No.");
             if xNRMSSFee.Description <> '' then
                 GenJournalLine.Validate(Description, xNRMSSFee.Description);
-            GenJournalLine.Validate(Amount, -xFeeAmount);
+            GenJournalLine.Validate(Amount, xFeeAmount);
             GenJournalLine.Validate(Description, xNRMSSFee.Description);
         end;
         GenJournalLine.Modify(true);
@@ -558,10 +555,63 @@ codeunit 51502 "NRM ShipStation Management"
         xTaxAccountNo := ShipStationSetup."Tax Account No.";
     end;
 
+    local procedure GenJnlLineByUnitCostLCYOnDelete(xJournalTemplateName: Code[10]; xJournalBatchName: Code[10];
+                                                    xYourReference: Text[35]; xFeeAccountNo: Code[20];
+                                                    xClearingAccountNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        GenJournalLine.Reset();
+        GenJournalLine.SetCurrentKey("External Document No.", "Account No.");
+        GenJournalLine.SetRange("Journal Template Name", xJournalTemplateName);
+        GenJournalLine.SetRange("Journal Batch Name", xJournalBatchName);
+        GenJournalLine.SetRange("External Document No.", xYourReference);
+        GenJournalLine.SetFilter("Account No.", '%1|%2', xFeeAccountNo, xClearingAccountNo);
+        GenJournalLine.DeleteAll(true);
+    end;
+
+    internal procedure CreateGenJnlLineByUnitCostLCYOnAfterValidate(var xSalesLine: Record "Sales Line")
+    var
+        SalesHeader: Record "Sales Header";
+        SSShipment: Record "NRM SS Shipment";
+        NRMSSFee: Record "NRM SS Fee";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        DocumentNo: Code[20];
+    begin
+        if not SalesHeader.Get(xSalesLine."Document Type", xSalesLine."Document No.") then exit;
+        if not SSShipment.Get(SalesHeader."NRM ShipStation Id") then exit;
+
+        GetSSStore(SSShipment."Store ID");
+        SSStore.TestField("Shipping Income Account No.");
+        SSStore.TestField("Shipping Expense");
+
+        if (xSalesLine.Type <> Enum::"Sales Line Type"::"G/L Account")
+        or (xSalesLine."No." <> SSStore."Shipping Income Account No.") then
+            exit;
+
+        if not NRMSSFee.Get(SSStore."Store ID", SSStore."Shipping Expense") then exit;
+        NRMSSFee.TestField("Account No.");
+
+        GenJnlBatch.Get(SSStore."Journal Template Name", SSStore."Journal Batch Name");
+        GenJnlBatch.TestField("No. Series");
+        DocumentNo := NoSeries.GetNextNo(GenJnlBatch."No. Series", SalesHeader."Order Date");
+
+        GenJnlLineByUnitCostLCYOnDelete(SSStore."Journal Template Name", SSStore."Journal Batch Name",
+                                        SalesHeader."Your Reference", NRMSSFee."Account No.", SSStore."Clearing Account No.");
+
+        InsertFeeJournalLine(false, SSStore."Journal Template Name", SSStore."Journal Batch Name",
+                                     NRMSSFee, xSalesLine."Unit Cost (LCY)", SalesHeader."Order Date", DocumentNo,
+                                     SalesHeader."Your Reference");
+        InsertFeeJournalLine(true, SSStore."Journal Template Name", SSStore."Journal Batch Name",
+                             NRMSSFee, xSalesLine."Unit Cost (LCY)", SalesHeader."Order Date", DocumentNo,
+                             SalesHeader."Your Reference");
+    end;
+
     var
         GLSetup: Record "General Ledger Setup";
         SSStore: Record "NRM SS Store";
         ShipStationSetup: Record "NRM ShipStation Setup";
+        NoSeries: Codeunit "No. Series";
         ShipStationSetupRead, GLSetupRead : Boolean;
         SalesOrderAlreadyExistsErr: Label 'Sales Order already exists with No.= %1 and ShipStation ID = %2!', Comment = '%1 = Sales Order No., %2 = ShipStation ID';
         SalesInvoiceAlreadyExistsErr: Label 'Sales Invoice already exists with No.= %1 and ShipStation ID = %2!', Comment = '%1 = Sales Invoice No., %2 = ShipStation ID';

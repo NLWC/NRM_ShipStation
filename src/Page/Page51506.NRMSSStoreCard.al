@@ -59,9 +59,9 @@ page 51506 "NRM SS Store Card"
                 {
                     ToolTip = 'Specifies the value of the Website field.', Comment = '%';
                 }
-                field("Shipping Account No."; Rec."Shipping Account No.")
+                field("Shipping Income Account No."; Rec."Shipping Income Account No.")
                 {
-                    ToolTip = 'Specifies the value of the Shipping Account No. field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Shipping Income Account No. field.', Comment = '%';
                 }
                 field("Journal Template Name"; Rec."Journal Template Name")
                 {
@@ -80,6 +80,10 @@ page 51506 "NRM SS Store Card"
                     ToolTip = 'Specifies the value of the Colorado Fee Code field.', Comment = '%';
                 }
                 field("Tax Account No."; Rec."Tax Account No.")
+                {
+                    ToolTip = 'Specifies the value of the Tax Account No. field.', Comment = '%';
+                }
+                field("Shipping Expense"; Rec."Shipping Expense")
                 {
                     ToolTip = 'Specifies the value of the Tax Account No. field.', Comment = '%';
                 }
