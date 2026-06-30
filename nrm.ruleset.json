@@ -15,6 +15,11 @@
             "id": "AA0215",
             "action": "Hidden",
             "justification": "Ingore incorrect naming warnings"
+        },
+        {
+            "id": "AA0247",
+            "action": "Hidden",
+            "justification": "Ingore namespace warnings"
         }
     ]
 }

@@ -7,6 +7,7 @@ page 51506 "NRM SS Store Card"
     ModifyAllowed = true;
     DeleteAllowed = true;
     ApplicationArea = All;
+    UsageCategory = None;
     RefreshOnActivate = true;
 
     layout

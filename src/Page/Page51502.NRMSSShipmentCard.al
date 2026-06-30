@@ -7,6 +7,7 @@ page 51502 "NRM SS Shipment Card"
     ModifyAllowed = false;
     DeleteAllowed = true;
     ApplicationArea = All;
+    UsageCategory = None;
     RefreshOnActivate = true;
 
     layout
