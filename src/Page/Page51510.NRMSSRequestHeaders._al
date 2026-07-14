@@ -1,0 +1,30 @@
+page 51510 "NRM SS Request Headers"
+{
+    Caption = 'Request Headers';
+    PageType = CardPart;
+    ApplicationArea = All;
+    SourceTable = "NRM SS Request Log";
+
+    layout
+    {
+        area(content)
+        {
+            field(RequestHeaders; RequestHeadersText)
+            {
+                ApplicationArea = All;
+                Caption = 'Request Headers';
+                MultiLine = true;
+                Editable = false;
+                Style = Normal;
+            }
+        }
+    }
+
+    var
+        RequestHeadersText: Text;
+
+    trigger OnAfterGetRecord()
+    begin
+        RequestHeadersText := Rec.GetRequestHeaders(Rec."Request ID");
+    end;
+}

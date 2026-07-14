@@ -2,7 +2,7 @@
   "id": "79794a29-95b3-41c4-bc79-d1b4f5757f7d",
   "name": "ShipStation",
   "publisher": "Norma",
-  "version": "27.2.0.0",
+  "version": "28.1.1.0",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -10,7 +10,14 @@
   "help": "",
   "url": "",
   "logo": "",
-  "dependencies": [],
+  "dependencies": [
+    {
+      "id": "fa072300-3657-413a-a5c9-85c545dc2147",
+      "name": "Box Package",
+      "version": "1.0.0.0",
+      "publisher": "Norma"
+    }
+  ],
   "screenshots": [],
   "platform": "1.0.0.0",
   "application": "1.0.0.0",
@@ -21,11 +28,12 @@
     }
   ],
   "resourceExposurePolicy": {
+    "applyToDevExtension": true,
     "allowDebugging": true,
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "runtime": "16.0",
+  "runtime": "17.0",
   "features": [
     "NoImplicitWith"
   ]

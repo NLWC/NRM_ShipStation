@@ -1,0 +1,126 @@
+page 51503 "NRM SS Request Logs"
+{
+    Caption = 'ShipStation Request Logs';
+    PageType = List;
+    ApplicationArea = All;
+    SourceTable = "NRM SS Request Log";
+    Editable = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
+    ModifyAllowed = false;
+    SourceTableView = sorting("Request DateTime") order(descending);
+
+    layout
+    {
+        area(content)
+        {
+            repeater(General)
+            {
+                field("Entry No."; Rec."Entry No.")
+                {
+                    ApplicationArea = All;
+                }
+                field("Request ID"; Rec."Request ID")
+                {
+                    ApplicationArea = All;
+                }
+                field("Endpoint Code"; Rec."Endpoint Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("HTTP Method"; Rec."HTTP Method")
+                {
+                    ApplicationArea = All;
+                }
+                field("Request DateTime"; Rec."Request DateTime")
+                {
+                    ApplicationArea = All;
+                }
+                field("Response Status Code"; Rec."Response Status Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("Success"; Rec."Success")
+                {
+                    ApplicationArea = All;
+                }
+                field("Duration (ms)"; Rec."Duration (ms)")
+                {
+                    ApplicationArea = All;
+                }
+                field("User ID"; Rec."User ID")
+                {
+                    ApplicationArea = All;
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(processing)
+        {
+            action("View Details")
+            {
+                Caption = 'View Details';
+                ApplicationArea = All;
+                Image = View;
+                RunObject = page "NRM SS Request Log";
+                RunPageLink = "Entry No." = field("Entry No.");
+                ToolTip = 'View detailed information about this request.';
+            }
+            action("Open Request URL")
+            {
+                Caption = 'Open Request URL';
+                ApplicationArea = All;
+                Image = Link;
+                ToolTip = 'Open the request URL in a web browser.';
+
+                trigger OnAction()
+                var
+                    Hyperlink: Text;
+                begin
+                    if Rec."Request URL" <> '' then
+                        Hyperlink.OpenInNewWindow(Rec."Request URL");
+                end;
+            }
+            action("Clear Old Logs")
+            {
+                Caption = 'Clear Old Logs';
+                ApplicationArea = All;
+                Image = ClearFilter;
+                ToolTip = 'Delete request logs older than 30 days.';
+
+                trigger OnAction()
+                var
+                    ShipStationRequestLog: Record "NRM ShipStation Request Log";
+                    ConfirmDelete: Boolean;
+                begin
+                    ConfirmDelete := Confirm('Delete all request logs older than 30 days? This action cannot be undone.', false);
+                    if ConfirmDelete then begin
+                        ShipStationRequestLog.SetFilter("Request DateTime", '<=%1', CreateDateTime(Today - 30, Time));
+                        ShipStationRequestLog.DeleteAll();
+                        Message('Old request logs have been deleted.');
+                    end;
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref("View Details_Promoted"; "View Details")
+                {
+                }
+            }
+        }
+    }
+
+    // trigger OnOpenPage()
+    // begin
+    //     Rec.SetCurrentKey("Request DateTime");
+    //     Rec.Ascending(false); // Show newest first
+    // end;
+}

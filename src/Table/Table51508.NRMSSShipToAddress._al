@@ -1,0 +1,85 @@
+table 51508 "NRM SS ShipToAddress"
+{
+    Caption = 'ShipStation Ship-To Address';
+    DataClassification = ToBeClassified;
+
+    fields
+    {
+        field(1; "Shipment ID"; Code[50])
+        {
+            Caption = 'Shipment ID';
+            DataClassification = SystemMetadata;
+        }
+        field(2; Name; Text[100])
+        {
+            Caption = 'Name';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(3; Company; Text[100])
+        {
+            Caption = 'Company';
+            DataClassification = SystemMetadata;
+        }
+        field(4; Phone; Text[20])
+        {
+            Caption = 'Phone';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(5; Email; Text[80])
+        {
+            Caption = 'Email';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(6; "Address Line 1"; Text[250])
+        {
+            Caption = 'Address Line 1';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(7; "Address Line 2"; Text[250])
+        {
+            Caption = 'Address Line 2';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(8; "Address Line 3"; Text[250])
+        {
+            Caption = 'Address Line 3';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(9; "City Locality"; Text[50])
+        {
+            Caption = 'City Locality';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(10; "State Province"; Text[50])
+        {
+            Caption = 'State Province';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(11; "Postal Code"; Text[20])
+        {
+            Caption = 'Postal Code';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(12; "Country Code"; Text[10])
+        {
+            Caption = 'Country Code';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(13; "Address Residential Indicator"; Text[10])
+        {
+            Caption = 'Address Residential Indicator';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+    }
+
+    keys
+    {
+        key(PK; "Shipment ID")
+        {
+            Clustered = true;
+        }
+        key(Name; Name) { }
+        key(Phone; Phone) { }
+        key(Email; Email) { }
+    }
+}
