@@ -39,7 +39,8 @@ codeunit 51500 "NRM ShipStation API v2"
             Error('Failed to get shipments from SS API');
     end;
 
-    procedure GetShipmentById(ShipmentId: Text; var Shipment: Record "NRM SS Shipment")
+    [TryFunction]
+    procedure GetShipmentById(ShipmentId: Text; var NRMSSShipment: Record "NRM SS Shipment")
     var
         Endpoint: Text;
         ResponseText: Text;
@@ -50,7 +51,7 @@ codeunit 51500 "NRM ShipStation API v2"
 
         if SendGetRequest(Endpoint, ResponseText) then begin
             if JsonResponse.ReadFrom(ResponseText) then
-                ParseShipment(JsonResponse, Shipment);
+                ParseShipment(JsonResponse, NRMSSShipment);
         end else
             Error('Failed to get shipment %1 from SS API', ShipmentId);
     end;
@@ -127,98 +128,98 @@ codeunit 51500 "NRM ShipStation API v2"
         end;
     end;
 
-    local procedure ParseShipment(ShipmentObj: JsonObject; var xShipStationShipment: Record "NRM SS Shipment")
+    local procedure ParseShipment(ShipmentObj: JsonObject; var xNRMSSShipment: Record "NRM SS Shipment")
     var
         JsonToken: JsonToken;
         ShipToObj: JsonObject;
         ItemsArray: JsonArray;
     begin
-        xShipStationShipment.Init();
+        xNRMSSShipment.Init();
 
         // Parse basic fields
         if ShipmentObj.Get('shipment_id', JsonToken) then
-            xShipStationShipment."Shipment ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Shipment ID"));
+            xNRMSSShipment."Shipment ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Shipment ID"));
 
         if ShipmentObj.Get('external_shipment_id', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."External Shipment ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."External Shipment ID"));
+            xNRMSSShipment."External Shipment ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."External Shipment ID"));
 
         if ShipmentObj.Get('requested_shipment_service', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Requested Shipment Service" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Requested Shipment Service"));
+            xNRMSSShipment."Requested Shipment Service" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Requested Shipment Service"));
 
         if ShipmentObj.Get('shipment_status', JsonToken) and not JsonToken.AsValue().IsNull() then
-            Evaluate(xShipStationShipment."Shipment Status", JsonToken.AsValue().AsText());
+            Evaluate(xNRMSSShipment."Shipment Status", JsonToken.AsValue().AsText());
 
         if ShipmentObj.Get('created_at', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Created At" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Created At"));
+            xNRMSSShipment."Created At" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Created At"));
 
         if ShipmentObj.Get('ship_by_date', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Ship by Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship by Date"));
+            xNRMSSShipment."Ship by Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship by Date"));
 
         if ShipmentObj.Get('ship_date', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Ship Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship Date"));
+            xNRMSSShipment."Ship Date" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship Date"));
 
         if ShipmentObj.Get('carrier_id', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Carrier ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Carrier ID"));
+            xNRMSSShipment."Carrier ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Carrier ID"));
 
         if ShipmentObj.Get('service_code', JsonToken) and not JsonToken.AsValue().IsNull() then
-            xShipStationShipment."Service Code" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Service Code"));
+            xNRMSSShipment."Service Code" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Service Code"));
 
         if ShipmentObj.Get('store_id', JsonToken) then
-            xShipStationShipment."Store ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Store ID"));
+            xNRMSSShipment."Store ID" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Store ID"));
 
         if ShipmentObj.Get('amount_paid', JsonToken) then
             if JsonToken.AsObject().Get('amount', JsonToken) then
-                xShipStationShipment.Amount := JsonToken.AsValue().AsDecimal();
+                xNRMSSShipment.Amount := JsonToken.AsValue().AsDecimal();
 
         if ShipmentObj.Get('shipping_paid', JsonToken) then
             if JsonToken.AsObject().Get('amount', JsonToken) then
-                xShipStationShipment."Shipping Amount" := JsonToken.AsValue().AsDecimal();
+                xNRMSSShipment."Shipping Amount" := JsonToken.AsValue().AsDecimal();
 
         if ShipmentObj.Get('tax_paid', JsonToken) then
             if JsonToken.AsObject().Get('amount', JsonToken) then
-                xShipStationShipment."Tax Amount" := JsonToken.AsValue().AsDecimal();
+                xNRMSSShipment."Tax Amount" := JsonToken.AsValue().AsDecimal();
 
         // Parse ship_to object
         if ShipmentObj.Get('ship_to', JsonToken) then begin
             ShipToObj := JsonToken.AsObject();
 
             if ShipToObj.Get('name', JsonToken) then
-                xShipStationShipment."Ship To Name" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Name"));
+                xNRMSSShipment."Ship To Name" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Name"));
 
             if ShipToObj.Get('email', JsonToken) then
-                xShipStationShipment.Email := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment.Email));
+                xNRMSSShipment.Email := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment.Email));
 
             if ShipToObj.Get('phone', JsonToken) and not JsonToken.AsValue().IsNull() then
-                xShipStationShipment.Phone := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment.Phone));
+                xNRMSSShipment.Phone := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment.Phone));
 
             if ShipToObj.Get('address_line1', JsonToken) then
-                xShipStationShipment."Ship To Address 1" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Address 1"));
+                xNRMSSShipment."Ship To Address 1" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Address 1"));
 
             if ShipToObj.Get('address_line2', JsonToken) and not JsonToken.AsValue().IsNull() then
-                xShipStationShipment."Ship To Address 2" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Address 2"));
+                xNRMSSShipment."Ship To Address 2" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Address 2"));
 
             if ShipToObj.Get('address_line3', JsonToken) and not JsonToken.AsValue().IsNull() then
-                xShipStationShipment."Ship To Address 3" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Address 3"));
+                xNRMSSShipment."Ship To Address 3" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Address 3"));
 
             if ShipToObj.Get('city_locality', JsonToken) then
-                xShipStationShipment."Ship To City" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To City"));
+                xNRMSSShipment."Ship To City" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To City"));
 
             if ShipToObj.Get('state_province', JsonToken) then
-                xShipStationShipment."Ship To State" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To State"));
+                xNRMSSShipment."Ship To State" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To State"));
 
             if ShipToObj.Get('postal_code', JsonToken) then
-                xShipStationShipment."Ship To Postal Code" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Postal Code"));
+                xNRMSSShipment."Ship To Postal Code" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Postal Code"));
 
             if ShipToObj.Get('country_code', JsonToken) then
-                xShipStationShipment."Ship To Country" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xShipStationShipment."Ship To Country"));
+                xNRMSSShipment."Ship To Country" := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(xNRMSSShipment."Ship To Country"));
         end;
 
-        if not xShipStationShipment.Insert() then exit;
+        if not xNRMSSShipment.Insert() then exit;
 
         // Parse items after inserting shipment
         if ShipmentObj.Get('items', JsonToken) then begin
             ItemsArray := JsonToken.AsArray();
-            ParseItems(ItemsArray, xShipStationShipment."Shipment ID", xShipStationShipment."Store ID");
+            ParseItems(ItemsArray, xNRMSSShipment."Shipment ID", xNRMSSShipment."Store ID");
         end;
     end;
 

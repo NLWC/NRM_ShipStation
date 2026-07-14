@@ -41,6 +41,11 @@ page 51506 "NRM SS Store Card"
                     ToolTip = 'Specifies the value of the Blocked field.', Comment = '%';
                 }
             }
+            part(Fees; "NRM SS Fees")
+            {
+                Caption = 'Fees';
+                SubPageLink = "Store ID" = field("Store ID");
+            }
             group(Extended)
             {
                 field("Customer Template Code"; Rec."Customer Template Code")
@@ -79,19 +84,18 @@ page 51506 "NRM SS Store Card"
                 {
                     ToolTip = 'Specifies the value of the Colorado Fee Code field.', Comment = '%';
                 }
-                field("Tax Account No."; Rec."Tax Account No.")
+                field("Etsy TAX Code"; Rec."Etsy TAX Code")
                 {
-                    ToolTip = 'Specifies the value of the Tax Account No. field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Etsy TAX Code field.', Comment = '%';
+                }
+                field("TAX Account No."; Rec."TAX Account No.")
+                {
+                    ToolTip = 'Specifies the value of the TAX Account No. field.', Comment = '%';
                 }
                 field("Shipping Expense"; Rec."Shipping Expense")
                 {
-                    ToolTip = 'Specifies the value of the Tax Account No. field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Shipping Expense field.', Comment = '%';
                 }
-            }
-            part(Fees; "NRM SS Fees")
-            {
-                Caption = 'Fees';
-                SubPageLink = "Store ID" = field("Store ID");
             }
         }
     }
@@ -114,6 +118,15 @@ page 51506 "NRM SS Store Card"
                     ShipStationAPIV1.SyncStores();
                 end;
             }
+            action(Shipments)
+            {
+                Caption = 'Shipments';
+                ApplicationArea = All;
+                Image = NewWarehouseShipment;
+                ToolTip = 'View the list of shipments.';
+                RunObject = page "NRM SS Shipments";
+                RunPageLink = "Store ID" = field("Store ID");
+            }
         }
         area(Promoted)
         {
@@ -122,6 +135,7 @@ page 51506 "NRM SS Store Card"
                 Caption = 'Process';
 
                 actionref("Sync Stores_Promoted"; "Sync Stores") { }
+                actionref("Shipments_Promoted"; "Shipments") { }
             }
         }
     }

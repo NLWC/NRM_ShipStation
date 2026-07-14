@@ -70,7 +70,7 @@ table 51505 "NRM SS Shipment"
             Caption = 'Email';
             DataClassification = SystemMetadata;
         }
-        field(15; "Store ID"; Text[20])
+        field(15; "Store ID"; Code[20])
         {
             Caption = 'Store ID';
             DataClassification = SystemMetadata;

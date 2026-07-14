@@ -58,13 +58,13 @@ page 51500 "NRM SS Setup"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field("Tax G/L Account"; Rec."Tax Account No.")
+                    field("TAX Account No."; Rec."TAX Account No.")
                     {
-                        ToolTip = 'Specifies the value of the Tax G/L Account field.', Comment = '%';
+                        ToolTip = 'Specifies the value of the TAX Account No. field.', Comment = '%';
                     }
-                    field("No Tax"; Rec."No Tax")
+                    field("No TAX"; Rec."No TAX")
                     {
-                        ToolTip = 'Specifies the value of the No Tax field.', Comment = '%';
+                        ToolTip = 'Specifies the value of the No TAX field.', Comment = '%';
                     }
                     field(Enabled; Rec.Enabled)
                     {

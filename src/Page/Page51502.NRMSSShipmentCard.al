@@ -150,8 +150,7 @@ page 51502 "NRM SS Shipment Card"
                     TempShipment: Record "NRM SS Shipment" temporary;
                     ShipStationAPIV2: Codeunit "NRM ShipStation API v2";
                 begin
-                    ShipStationAPIV2.GetShipmentById(Rec."External Shipment ID", TempShipment);
-                    if TempShipment.FindFirst() then begin
+                    if ShipStationAPIV2.GetShipmentById(Rec."External Shipment ID", TempShipment) then begin
                         Rec := TempShipment;
                         Rec.Modify();
                         Message('Shipment refreshed successfully.');

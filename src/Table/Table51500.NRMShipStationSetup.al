@@ -26,15 +26,15 @@ table 51500 "NRM ShipStation Setup"
             Caption = 'Enabled';
             DataClassification = SystemMetadata;
         }
-        field(5; "Tax Account No."; Code[20])
+        field(5; "TAX Account No."; Code[20])
         {
-            Caption = 'Tax Account No.';
+            Caption = 'TAX Account No.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
         }
-        field(6; "No Tax"; Boolean)
+        field(6; "No TAX"; Boolean)
         {
-            Caption = 'No Tax';
+            Caption = 'No TAX';
             DataClassification = SystemMetadata;
         }
         field(7; "API v1 Key"; Text[250])

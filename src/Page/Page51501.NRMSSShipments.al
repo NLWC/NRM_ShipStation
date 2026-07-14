@@ -25,6 +25,7 @@ page 51501 "NRM SS Shipments"
                 field("Store ID"; Rec."Store ID")
                 {
                     ToolTip = 'Specifies the store ID from ShipStation.';
+                    Visible = false;
                 }
                 field("Store Name"; Rec."Store Name")
                 {
@@ -154,16 +155,19 @@ page 51501 "NRM SS Shipments"
 
                 trigger OnAction()
                 var
-                    TempShipment: Record "NRM SS Shipment" temporary;
+                    NRMSSShipment: Record "NRM SS Shipment";
+                    TempNRMSSShipment: Record "NRM SS Shipment" temporary;
                     ShipStationAPIV2: Codeunit "NRM ShipStation API v2";
                 begin
-                    ShipStationAPIV2.GetShipmentById(Rec."External Shipment ID", TempShipment);
-                    if TempShipment.FindFirst() then begin
-                        Rec := TempShipment;
-                        Rec.Modify();
-                        Message('Shipment refreshed successfully.');
-                    end else
-                        Message('Failed to refresh shipment details.');
+                    CurrPage.SetSelectionFilter(NRMSSShipment);
+                    if NRMSSShipment.FindSet() then
+                        repeat
+                            if ShipStationAPIV2.GetShipmentById(NRMSSShipment."External Shipment ID", TempNRMSSShipment) then begin
+                                NRMSSShipment := TempNRMSSShipment;
+                                NRMSSShipment.Modify();
+                            end;
+                        until NRMSSShipment.Next() = 0;
+                    Message('Shipment refreshed successfully.');
                 end;
             }
             action(CreateSalesOrder)

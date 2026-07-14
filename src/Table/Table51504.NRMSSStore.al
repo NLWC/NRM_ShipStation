@@ -33,8 +33,8 @@ table 51504 "NRM SS Store"
         field(6; "Customer Template Code"; Code[20])
         {
             Caption = 'Customer Template Code';
-            TableRelation = "Customer Templ.";
             DataClassification = SystemMetadata;
+            TableRelation = "Customer Templ.";
         }
         field(7; "Customer Prefix"; Code[10])
         {
@@ -83,20 +83,26 @@ table 51504 "NRM SS Store"
         field(15; "Colorado Fee Code"; Code[20])
         {
             Caption = 'Colorado Fee Code';
-            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
             DataClassification = SystemMetadata;
+            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
         }
-        field(16; "Tax Account No."; Code[20])
+        field(16; "TAX Account No."; Code[20])
         {
-            Caption = 'Tax Account No.';
+            Caption = 'TAX Account No.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account" where("Account Type" = const(Posting), "Blocked" = const(false));
         }
         field(17; "Shipping Expense"; Code[20])
         {
-            Caption = 'Tax Account No.';
-            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
+            Caption = 'Shipping Expense';
             DataClassification = SystemMetadata;
+            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
+        }
+        field(18; "Etsy TAX Code"; Code[20])
+        {
+            Caption = 'Etsy TAX Code';
+            DataClassification = SystemMetadata;
+            TableRelation = "NRM SS Fee"."Code" where("Store ID" = field("Store ID"));
         }
     }
 
