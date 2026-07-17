@@ -272,6 +272,7 @@ codeunit 51502 "NRM ShipStation Management"
                                                        var xLineNo: Integer; xStoreID: Text[20])
     var
         SalesLine: Record "Sales Line";
+        NRMSSFee: Record "NRM SS Fee";
         TaxAccountNo: Code[20];
     begin
         if xSalesHeader."NRM ShipStation Tax" = 0 then exit;
@@ -293,6 +294,9 @@ codeunit 51502 "NRM ShipStation Management"
 
         if ShipStationSetup."Tax Description" <> '' then
             SalesLine.Description := ShipStationSetup."Tax Description";
+
+        if NRMSSFee.Get(SSStore."Store ID", SSStore."Etsy TAX Code") and (NRMSSFee.Description <> '') then
+            SalesLine.Description := NRMSSFee.Description;
 
         SalesLine."NRM Fee Code" := SSStore."Etsy TAX Code";
         SalesLine.Modify(true);
@@ -318,6 +322,7 @@ codeunit 51502 "NRM ShipStation Management"
         NRMSSFee.SetRange(Code, SSStore."Colorado Fee Code");
         NRMSSFee.SetFilter("County Delivery", '<>%1', '');
         if not NRMSSFee.FindFirst() then exit;
+
         GetFeeAmount(xSalesHeader, NRMSSFee, SSStore."Shipping Income Account No.", FeeAmount);
         if FeeAmount = 0 then exit;
 
@@ -338,6 +343,7 @@ codeunit 51502 "NRM ShipStation Management"
 
         if NRMSSFee.Description <> '' then
             SalesLine.Description := NRMSSFee.Description;
+
         SalesLine."NRM Fee Code" := SSStore."Colorado Fee Code";
         SalesLine.Modify(true);
 
