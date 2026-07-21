@@ -36,6 +36,14 @@ table 51511 "NRM SS Variant"
         {
             Caption = 'Status';
             DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            begin
+                if (xRec.Status = Status) or (Status <> Status::Active) then exit;
+
+                TestField("Item No.");
+                TestField(Variant);
+            end;
         }
         field(7; "Image URL"; Text[500])
         {
