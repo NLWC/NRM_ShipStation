@@ -1,0 +1,234 @@
+table 51503 "NRM SS Request Log"
+{
+    Caption = 'ShipStation Request Log';
+    DataClassification = ToBeClassified;
+
+    fields
+    {
+        field(1; "Entry No."; Integer)
+        {
+            Caption = 'Entry No.';
+            DataClassification = SystemMetadata;
+            AutoIncrement = true;
+        }
+        field(2; "Request ID"; Guid)
+        {
+            Caption = 'Request ID';
+            DataClassification = SystemMetadata;
+        }
+        field(3; "Endpoint Code"; Code[20])
+        {
+            Caption = 'Endpoint Code';
+            DataClassification = SystemMetadata;
+        }
+        field(4; "HTTP Method"; Enum "HTTP Method")
+        {
+            Caption = 'HTTP Method';
+            DataClassification = SystemMetadata;
+        }
+        field(5; "Request DateTime"; DateTime)
+        {
+            Caption = 'Request DateTime';
+            DataClassification = SystemMetadata;
+        }
+        field(6; "Request URL"; Text[500])
+        {
+            Caption = 'Request URL';
+            DataClassification = SystemMetadata;
+        }
+        field(7; "Response Status Code"; Integer)
+        {
+            Caption = 'Response Status Code';
+            DataClassification = SystemMetadata;
+        }
+        field(8; "Response DateTime"; DateTime)
+        {
+            Caption = 'Response DateTime';
+            DataClassification = SystemMetadata;
+        }
+        field(9; Success; Boolean)
+        {
+            Caption = 'Success';
+            DataClassification = SystemMetadata;
+        }
+        field(10; "Duration (ms)"; Integer)
+        {
+            Caption = 'Duration (ms)';
+            DataClassification = SystemMetadata;
+        }
+        field(11; "Error Message"; Text[250])
+        {
+            Caption = 'Error Message';
+            DataClassification = SystemMetadata;
+        }
+        field(12; "User ID"; Code[50])
+        {
+            Caption = 'User ID';
+            DataClassification = EndUserIdentifiableInformation;
+        }
+        field(13; "Company Name"; Text[30])
+        {
+            Caption = 'Company Name';
+            DataClassification = SystemMetadata;
+        }
+        field(14; "Request Headers"; Blob)
+        {
+            Caption = 'Request Headers';
+            DataClassification = SystemMetadata;
+        }
+        field(15; "Request Body"; Blob)
+        {
+            Caption = 'Request Body';
+            DataClassification = SystemMetadata;
+        }
+        field(16; "Response Headers"; Blob)
+        {
+            Caption = 'Response Headers';
+            DataClassification = SystemMetadata;
+        }
+        field(17; "Response Body"; Blob)
+        {
+            Caption = 'Response Body';
+            DataClassification = SystemMetadata;
+        }
+    }
+
+    keys
+    {
+        key(PK; "Entry No.")
+        {
+            Clustered = true;
+        }
+        key(RequestID; "Request ID") { }
+        key(RequestDateTime; "Request DateTime") { }
+        key(Endpoint; "Endpoint Code", "Request DateTime") { }
+    }
+
+    procedure LogRequest(RequestID: Guid; EndpointCode: Code[20]; Method: Enum "HTTP Method"; URL: Text)
+    begin
+        Init();
+        "Entry No." := 0; // Auto increment will handle this
+        "Request ID" := RequestID;
+        "Endpoint Code" := EndpointCode;
+        "HTTP Method" := Method;
+        "Request DateTime" := CurrentDateTime;
+        "Request URL" := CopyStr(URL, 1, MaxStrLen("Request URL"));
+        "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
+        "Company Name" := CopyStr(CompanyName(), 1, MaxStrLen("Company Name"));
+        Insert();
+    end;
+
+    procedure LogResponse(RequestID: Guid; StatusCode: Integer; Duration: Integer; Success: Boolean; ErrorMsg: Text)
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Response Status Code" := StatusCode;
+            "Response DateTime" := CurrentDateTime;
+            "Duration (ms)" := Duration;
+            "Success" := Success;
+            if ErrorMsg <> '' then
+                "Error Message" := CopyStr(ErrorMsg, 1, MaxStrLen("Error Message"));
+            Modify();
+        end;
+    end;
+
+    procedure SetRequestHeaders(RequestID: Guid; Headers: Text)
+    var
+        OutStream: OutStream;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Request Headers".CreateOutStream(OutStream);
+            OutStream.WriteText(Headers);
+            Modify();
+        end;
+    end;
+
+    procedure SetRequestBody(RequestID: Guid; Body: Text)
+    var
+        OutStream: OutStream;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Request Body".CreateOutStream(OutStream);
+            OutStream.WriteText(Body);
+            Modify();
+        end;
+    end;
+
+    procedure SetResponseHeaders(RequestID: Guid; Headers: Text)
+    var
+        OutStream: OutStream;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Response Headers".CreateOutStream(OutStream);
+            OutStream.WriteText(Headers);
+            Modify();
+        end;
+    end;
+
+    procedure SetResponseBody(RequestID: Guid; Body: Text)
+    var
+        OutStream: OutStream;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Response Body".CreateOutStream(OutStream);
+            OutStream.WriteText(Body);
+            Modify();
+        end;
+    end;
+
+    procedure GetRequestHeaders(RequestID: Guid): Text
+    var
+        InStream: InStream;
+        Headers: Text;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Request Headers".CreateInStream(InStream);
+            InStream.ReadText(Headers);
+            exit(Headers);
+        end;
+    end;
+
+    procedure GetRequestBody(RequestID: Guid): Text
+    var
+        InStream: InStream;
+        Body: Text;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Request Body".CreateInStream(InStream);
+            InStream.ReadText(Body);
+            exit(Body);
+        end;
+    end;
+
+    procedure GetResponseHeaders(RequestID: Guid): Text
+    var
+        InStream: InStream;
+        Headers: Text;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Response Headers".CreateInStream(InStream);
+            InStream.ReadText(Headers);
+            exit(Headers);
+        end;
+    end;
+
+    procedure GetResponseBody(RequestID: Guid): Text
+    var
+        InStream: InStream;
+        Body: Text;
+    begin
+        SetRange("Request ID", RequestID);
+        if FindLast() then begin
+            "Response Body".CreateInStream(InStream);
+            InStream.ReadText(Body);
+            exit(Body);
+        end;
+    end;
+}
